@@ -81,7 +81,7 @@ export const WORKS: Work[] = [
       { code: "MJ", name: "아드리안 폰 크로스" },
       { code: "USR1", name: "플레이어,검사" },
       { code: "USR2", name: "플레이어,마법사" },
-      { code: "USR3", name: "플레이어,마법사" },
+      { code: "USR3", name: "플레이어,로그" },
     ],
     situations: [
       { code: "A1", name: "평상시, 약간 기쁨" },
