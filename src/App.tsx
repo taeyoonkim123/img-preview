@@ -96,7 +96,7 @@ export default function App() {
                   {/* 이미지 영역 */}
                   <div className={`rounded border overflow-hidden transition-colors ${isDarkMode ? 'bg-neutral-900 border-neutral-800 group-hover:border-neutral-600' : 'bg-[#f0f0f0] border-gray-100 group-hover:border-gray-200'}`}>
                     <img
-                      src={`${work.baseUrl}${char.code}_${selectedGlobalSituation || work.defaultSituation}.webp?v=0`}
+                      src={`${work.baseUrl}${char.code}_${selectedGlobalSituation || work.defaultSituation}.webp`}
                       alt={char.name}
                       className="w-full h-auto object-contain transition-transform duration-300 group-hover:scale-105 block"
                       loading="lazy"
@@ -136,7 +136,7 @@ export default function App() {
                 <div key={sit.code} className="group cursor-pointer">
                   <div className={`rounded border overflow-hidden transition-colors ${isDarkMode ? 'bg-neutral-900 border-neutral-800 group-hover:border-neutral-600' : 'bg-[#f0f0f0] border-gray-100 group-hover:border-gray-200'}`}>
                     <img
-                      src={`${work.baseUrl}${selectedCharacter}_${sit.code}.webp?v=0`}
+                      src={`${work.baseUrl}${selectedCharacter}_${sit.code}.webp`}
                       alt={sit.name}
                       className="w-full h-auto object-contain transition-opacity duration-300 group-hover:opacity-90 block"
                       loading="lazy"
