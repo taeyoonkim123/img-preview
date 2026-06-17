@@ -188,7 +188,7 @@ export default function App() {
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
               {work.situations
                 .map((sit) => {
-                  const imgUrl = `${work.baseUrl}${selectedCharacter}_${sit.code}.webp?v=0`;
+                  const imgUrl = `${work.baseUrl}${selectedCharacter}/${sit.code}.jpg`;
                   const isFailed = failedUrls[imgUrl];
 
                   if (isFailed) return null;
@@ -216,7 +216,7 @@ export default function App() {
                       </div>
                       <p className="mt-3 text-sm sm:text-base font-bold tracking-tight px-1">{sit.name}</p>
                       <p className={`text-[10px] sm:text-xs font-mono px-1 truncate ${isDarkMode ? 'text-neutral-500' : 'text-gray-400'}`}>
-                        {selectedCharacter}_{sit.code}.webp
+                        {selectedCharacter}/{sit.code}.jpg
                       </p>
                     </div>
                   );
