@@ -210,7 +210,8 @@ export const WORKS: Work[] = [
       { code: "DE5", name: "서큐버스 패배시" },
       { code: "101", name: "전투1" },
       { code: "102", name: "전투2" },
-      { code: "103", name: "전투3" }
+      { code: "103", name: "전투3" },
+      
     ]
   },
   
