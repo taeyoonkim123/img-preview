@@ -105,7 +105,7 @@ export default function App() {
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
               {work.characters
                 .map((char) => {
-                  const imgUrl = `${work.baseUrl}${char.code}_${selectedGlobalSituation || work.defaultSituation}.webp?v=0`;
+                  const imgUrl = `${work.baseUrl}${char.code}/${selectedGlobalSituation || work.defaultSituation}.jpg?`;
                   const isFailed = failedUrls[imgUrl];
                   
                   if (isFailed) return null;

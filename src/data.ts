@@ -23,7 +23,7 @@ export const WORKS: Work[] = [
   {
     id: "sword-magic-city",
     name: "검과 마법의 도시의 빙의자",
-    baseUrl: "https://d3lna1f15u7pcs.cloudfront.net/media/characters/543f5844-2c82-43f1-b234-e968b6a68c36/assets/",
+    baseUrl: "https://mapleimage.uk/smt/",
     defaultSituation: "A1", // 초기 화면에서 보여줄 캐릭터들의 기본 상황 코드 (A1, C2 등)
     characters: [
       { code: "AA", name: "셀레나 베일" },
