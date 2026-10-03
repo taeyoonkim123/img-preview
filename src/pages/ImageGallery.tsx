@@ -1,7 +1,7 @@
 import { useState, ChangeEvent, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { ChevronRight, ChevronDown, Sun, Moon, X, Maximize2 } from 'lucide-react';
-import { WORKS } from '../data';
+import { ChevronRight, ChevronDown, Sun, Moon, X, Maximize2, Shield, ShieldOff, TriangleAlert } from 'lucide-react';
+import { WORKS, isNsfw } from '../data';
 
 export default function ImageGallery() {
   const [searchParams] = useSearchParams();
@@ -16,6 +16,10 @@ export default function ImageGallery() {
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     return localStorage.getItem('isDarkMode') === 'true';
   });
+  // 세이프티 모드 (기본 ON: 명시적으로 끈 경우에만 성인 상황 노출)
+  const [isSafeMode, setIsSafeMode] = useState<boolean>(() => {
+    return localStorage.getItem('isSafeMode') !== 'false';
+  });
 
   useEffect(() => {
     localStorage.setItem('selectedWork', selectedWorkId);
@@ -24,6 +28,10 @@ export default function ImageGallery() {
   useEffect(() => {
     localStorage.setItem('isDarkMode', isDarkMode.toString());
   }, [isDarkMode]);
+
+  useEffect(() => {
+    localStorage.setItem('isSafeMode', isSafeMode.toString());
+  }, [isSafeMode]);
   
   // 이미지 로드 실패한 URL들을 기록하는 상태
   const [failedUrls, setFailedUrls] = useState<Record<string, boolean>>({});
@@ -31,8 +39,29 @@ export default function ImageGallery() {
   // 원본 이미지 미리보기 모달 상태
   const [modalImage, setModalImage] = useState<{ src: string; title: string } | null>(null);
 
+  // 세이프티 해제 경고 팝업 상태
+  const [showSafeOffWarning, setShowSafeOffWarning] = useState(false);
+
   // 현재 선택된 작품 가져오기
   const work = WORKS.find((w) => w.id === selectedWorkId) || WORKS[0];
+
+  // 세이프티 모드에 따라 노출할 상황 목록
+  const visibleSituations = isSafeMode ? work.situations.filter((sit) => !isNsfw(sit)) : work.situations;
+
+  // 세이프티 토글: 끌 때는 성인 확인, 켤 때는 보고 있던 성인 상황/모달 정리
+  const handleSafeModeToggle = () => {
+    if (isSafeMode) {
+      setShowSafeOffWarning(true);
+      return;
+    }
+    setIsSafeMode(true);
+    const currentSit = work.situations.find((s) => s.code === selectedGlobalSituation);
+    if (currentSit && isNsfw(currentSit)) {
+      setSelectedGlobalSituation(work.defaultSituation);
+      setFailedUrls({});
+    }
+    setModalImage(null);
+  };
 
   // 드롭다운 변경 핸들러
   const handleWorkChange = (e: ChangeEvent<HTMLSelectElement>) => {
@@ -82,6 +111,18 @@ export default function ImageGallery() {
 
         <div className="flex items-center gap-2 self-end md:self-auto">
           <button
+            onClick={handleSafeModeToggle}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors duration-300 ${
+              isSafeMode
+                ? isDarkMode ? 'bg-emerald-900/40 text-emerald-300 hover:bg-emerald-900/60' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                : isDarkMode ? 'bg-rose-900/40 text-rose-300 hover:bg-rose-900/60' : 'bg-rose-50 text-rose-600 hover:bg-rose-100'
+            }`}
+            title={isSafeMode ? "세이프티 끄기 (성인 콘텐츠 표시)" : "세이프티 켜기 (성인 콘텐츠 숨김)"}
+          >
+            {isSafeMode ? <Shield className="w-4 h-4" /> : <ShieldOff className="w-4 h-4" />}
+            <span>{isSafeMode ? 'SAFE ON' : 'SAFE OFF'}</span>
+          </button>
+          <button
             onClick={() => setIsDarkMode(!isDarkMode)}
             className={`p-2 rounded-full transition-colors duration-300 ${isDarkMode ? 'hover:bg-neutral-800 text-neutral-400 hover:text-neutral-100' : 'hover:bg-gray-100 text-gray-500 hover:text-black'}`}
             title={isDarkMode ? "라이트 모드로 전환" : "다크 모드로 전환"}
@@ -110,7 +151,7 @@ export default function ImageGallery() {
                       isDarkMode ? 'bg-neutral-800 border-neutral-700 text-neutral-200 focus:ring-neutral-500' : 'bg-white border-gray-200 focus:ring-black'
                     }`}
                   >
-                    {work.situations.map((sit) => (
+                    {visibleSituations.map((sit) => (
                       <option key={sit.code} value={sit.code}>
                         {sit.name} ({sit.code})
                       </option>
@@ -208,7 +249,7 @@ export default function ImageGallery() {
 
             {/* 1줄에 3~4장씩 띄우는 그리드 레이아웃 */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-              {work.situations
+              {visibleSituations
                 .map((sit) => {
                   const imgUrl = `${work.baseUrl}${selectedCharacter}/${sit.code}.jpg?v=1`;
                   const isFailed = failedUrls[imgUrl];
@@ -248,7 +289,7 @@ export default function ImageGallery() {
             </div>
 
             {/* 해당 캐릭터에 등록된 모든 상황 이미지의 로드가 실패해서 아무것도 나오지 않을 때 */}
-            {work.situations.length > 0 && work.situations.every(sit => failedUrls[`${work.baseUrl}${selectedCharacter}/${sit.code}.jpg?v=1`]) && (
+            {visibleSituations.length > 0 && visibleSituations.every(sit => failedUrls[`${work.baseUrl}${selectedCharacter}/${sit.code}.jpg?v=1`]) && (
               <div className="text-center py-24">
                 <p className={`text-sm ${isDarkMode ? 'text-neutral-400' : 'text-neutral-500'}`}>
                   이 캐릭터에 등록된 이미지가 전혀 없습니다.
@@ -264,6 +305,58 @@ export default function ImageGallery() {
           </section>
         )}
       </main>
+
+      {/* 세이프티 해제 경고 팝업 */}
+      {showSafeOffWarning && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+          onClick={() => setShowSafeOffWarning(false)}
+        >
+          <div
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="safe-off-title"
+            className={`w-full max-w-sm rounded-xl p-6 shadow-2xl text-center ${
+              isDarkMode ? 'bg-neutral-900 border border-neutral-800 text-neutral-100' : 'bg-white text-gray-900'
+            }`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mx-auto mb-4 w-12 h-12 rounded-full flex items-center justify-center bg-rose-100 text-rose-600">
+              <TriangleAlert className="w-6 h-6" />
+            </div>
+            <h3 id="safe-off-title" className="text-lg font-bold tracking-tight mb-2">
+              성인 콘텐츠 경고
+            </h3>
+            <p className={`text-sm leading-relaxed mb-6 ${isDarkMode ? 'text-neutral-400' : 'text-gray-600'}`}>
+              이 콘텐츠는 <strong className={isDarkMode ? 'text-neutral-100' : 'text-gray-900'}>성인만 열람 가능</strong>하며,
+              <br />
+              적나라한 성적 묘사가 포함되어 있습니다.
+              <br />
+              세이프티를 해제하시겠습니까?
+            </p>
+            <div className="flex gap-3">
+              <button
+                autoFocus
+                onClick={() => setShowSafeOffWarning(false)}
+                className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
+                  isDarkMode ? 'bg-neutral-800 hover:bg-neutral-700 text-neutral-200' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                }`}
+              >
+                아니오
+              </button>
+              <button
+                onClick={() => {
+                  setIsSafeMode(false);
+                  setShowSafeOffWarning(false);
+                }}
+                className="flex-1 py-2.5 rounded-lg text-sm font-semibold bg-rose-600 hover:bg-rose-700 text-white transition-colors"
+              >
+                예
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 이미지 상세 모달 (원본 보기 기능) */}
       {modalImage && (
